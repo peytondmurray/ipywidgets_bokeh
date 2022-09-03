@@ -9,6 +9,7 @@ import {WidgetManager, ModelBundle} from "./manager"
 
 const widget_managers: WeakMap<Document, WidgetManager> = new WeakMap()
 
+// IPyWidget view - each model can have any number of views
 export class IPyWidgetView extends HTMLBoxView {
   model: IPyWidget
 
@@ -31,7 +32,7 @@ export class IPyWidgetView extends HTMLBoxView {
 
   async _render(): Promise<void> {
     const manager = widget_managers.get(this.model.document!)!
-    await manager.render(this.model.bundle, this.el)
+    await manager.render(this.model.bundle, this.el, () => this.invalidate_layout())
   }
 }
 
@@ -46,6 +47,7 @@ export namespace IPyWidget {
 
 export interface IPyWidget extends IPyWidget.Attrs {}
 
+// IPyWidget Model
 export class IPyWidget extends HTMLBox {
   properties: IPyWidget.Props
 

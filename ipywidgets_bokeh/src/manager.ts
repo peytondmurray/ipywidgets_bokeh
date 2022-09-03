@@ -21,6 +21,10 @@ export type ModelState = {
   buffers: Buffer[]
 }
 
+export interface KnownModelState extends ModelState {
+  bokehViewInvalidator?: () => void
+}
+
 export type ModelBundle = {
   spec: {model_id: string}
   state: State
@@ -35,7 +39,7 @@ let _kernel_id = 0
 
 export class WidgetManager extends HTMLManager {
 
-  private _known_models: {[key: string]: ModelState} = {}
+  private _known_models: {[key: string]: KnownModelState} = {}
   private kernel_manager: KernelManager
   private kernel: Kernel.IKernelConnection
   private ws: WebSocket | null = null
@@ -139,17 +143,22 @@ export class WidgetManager extends HTMLManager {
     })
   }
 
-  async render(bundle: ModelBundle, el: HTMLElement): Promise<void> {
+  async render(
+    bundle: ModelBundle,
+    el: HTMLElement,
+    bokehViewInvalidator: () => void,
+  ): Promise<void> {
     const {spec, state} = bundle
     const new_models = state.state
     for (const id in new_models) {
-      this._known_models[id] = new_models[id]
+      this._known_models[id] = {...new_models[id], bokehViewInvalidator}
     }
     try {
       const models = await this.set_state(state)
       const model = models.find((item) => item.model_id == spec.model_id)
       if (model != null) {
         await this.display_model(undefined as any, model, {el})
+
       }
     } finally {
       for (const id in new_models) {
@@ -190,11 +199,18 @@ export class WidgetManager extends HTMLManager {
       const models = this._known_models
       const {model_id} = options
       if (model_id != null && models[model_id] != null) {
-        const model = models[model_id]
-        serialized_state = model.state
+        const {state} = models[model_id]
+        serialized_state = state
       } else
         throw new Error("internal error in new_model()")
     }
     return super.new_model(options, serialized_state)
+  }
+
+  invalidateLayout(id: string): void {
+    const {bokehViewInvalidator} = this._known_models[id]
+    if (bokehViewInvalidator !== undefined) {
+      bokehViewInvalidator()
+    }
   }
 }
