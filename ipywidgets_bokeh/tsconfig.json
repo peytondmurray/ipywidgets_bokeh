@@ -13,7 +13,7 @@
     "noErrorTruncation": true,
     "noEmitOnError": false,
     "declaration": true,
-    "sourceMap": false,
+    "sourceMap": true,
     "importHelpers": false,
     "experimentalDecorators": true,
     "module": "esnext",
@@ -21,7 +21,11 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "target": "ES2017",
-    "lib": ["es2017", "dom", "dom.iterable"],
+    "lib": [
+      "es2017",
+      "dom",
+      "dom.iterable"
+    ],
     "baseUrl": ".",
     "outDir": "./dist/lib",
     "paths": {
@@ -31,5 +35,7 @@
       ]
     }
   },
-  "include": ["./**/*.ts"]
+  "include": [
+    "./**/*.ts"
+  ]
 }
